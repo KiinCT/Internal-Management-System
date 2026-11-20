@@ -40,6 +40,17 @@ Tài khoản demo:
 | manager.it@demo.com | User@123 | manager |
 | dev1@demo.com | User@123 | staff |
 
+### Thêm nhiều dữ liệu mẫu
+
+```powershell
+cd backend
+npm run seed:more   # bổ sung dữ liệu, KHÔNG xóa dữ liệu cũ, chạy lại nhiều lần vẫn an toàn
+```
+
+Thêm: 4 phòng ban, 28 người dùng (mật khẩu `User@123`: `manager.kd/mkt/vh/cskh@demo.com`, `nv01`…`nv24@demo.com`), 8 dự án, khoảng 90 công việc kèm bình luận,
+36 đơn phê duyệt đủ trạng thái (tạo qua `WorkflowsService` thật), 29 tài sản, 4 tài nguyên và khoảng 100 lịch đặt phòng.
+Muốn làm lại từ đầu: `npm run seed:reset` rồi `npm run seed:more`.
+
 ## Tính năng
 
 - **Xác thực:** JWT access token (15 phút) + refresh token xoay vòng (lưu hash, dùng lại token cũ sẽ thu hồi phiên), đổi mật khẩu, rate-limit đăng nhập.
