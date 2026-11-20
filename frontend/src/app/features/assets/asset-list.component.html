@@ -1,0 +1,77 @@
+<div class="page">
+  <div class="page-header">
+    <h1>{{ canManage ? 'Quản lý tài sản' : 'Tài sản được cấp cho tôi' }}</h1>
+    <button mat-flat-button color="primary" *ngIf="canManage" (click)="edit(null)">
+      <mat-icon>add</mat-icon> Thêm tài sản
+    </button>
+  </div>
+
+  <div class="filters mb-16">
+    <mat-form-field appearance="outline">
+      <mat-label>Tìm kiếm</mat-label>
+      <input matInput (input)="search$.next($any($event.target).value)" />
+      <mat-icon matSuffix>search</mat-icon>
+    </mat-form-field>
+    <mat-form-field appearance="outline">
+      <mat-label>Trạng thái</mat-label>
+      <mat-select [(ngModel)]="status" (selectionChange)="page = 1; load()">
+        <mat-option value="">Tất cả</mat-option>
+        <mat-option *ngFor="let s of statuses" [value]="s[0]">{{ s[1] }}</mat-option>
+      </mat-select>
+    </mat-form-field>
+  </div>
+
+  <mat-progress-bar mode="indeterminate" *ngIf="loading()"></mat-progress-bar>
+  <div class="table-wrap">
+    <table mat-table [dataSource]="rows()">
+      <ng-container matColumnDef="code">
+        <th mat-header-cell *matHeaderCellDef>Mã</th>
+        <td mat-cell *matCellDef="let a"><strong>{{ a.code }}</strong></td>
+      </ng-container>
+      <ng-container matColumnDef="name">
+        <th mat-header-cell *matHeaderCellDef>Tên</th>
+        <td mat-cell *matCellDef="let a">
+          <div>{{ a.name }}</div>
+          <div class="muted">{{ a.serialNumber }}</div>
+        </td>
+      </ng-container>
+      <ng-container matColumnDef="category">
+        <th mat-header-cell *matHeaderCellDef>Loại</th>
+        <td mat-cell *matCellDef="let a">{{ a.category }}</td>
+      </ng-container>
+      <ng-container matColumnDef="price">
+        <th mat-header-cell *matHeaderCellDef>Giá trị</th>
+        <td mat-cell *matCellDef="let a">{{ a.price ? (a.price | number) + ' đ' : '—' }}</td>
+      </ng-container>
+      <ng-container matColumnDef="assignedTo">
+        <th mat-header-cell *matHeaderCellDef>Người sử dụng</th>
+        <td mat-cell *matCellDef="let a">{{ a.assignedTo | refName: '—' }}</td>
+      </ng-container>
+      <ng-container matColumnDef="status">
+        <th mat-header-cell *matHeaderCellDef>Trạng thái</th>
+        <td mat-cell *matCellDef="let a">
+          <span class="badge {{ a.status }}">{{ a.status | label: statusLabels }}</span>
+        </td>
+      </ng-container>
+      <ng-container matColumnDef="actions">
+        <th mat-header-cell *matHeaderCellDef></th>
+        <td mat-cell *matCellDef="let a" class="text-right">
+          <button mat-icon-button [matMenuTriggerFor]="menu"><mat-icon>more_vert</mat-icon></button>
+          <mat-menu #menu="matMenu">
+            <button mat-menu-item (click)="edit(a)"><mat-icon>edit</mat-icon>Sửa</button>
+            <button mat-menu-item *ngIf="a.status === 'available'" (click)="assign(a)">
+              <mat-icon>person_add</mat-icon>Cấp phát
+            </button>
+            <button mat-menu-item *ngIf="a.status === 'in_use'" (click)="returnAsset(a)">
+              <mat-icon>assignment_return</mat-icon>Thu hồi
+            </button>
+          </mat-menu>
+        </td>
+      </ng-container>
+      <tr mat-header-row *matHeaderRowDef="cols"></tr>
+      <tr mat-row *matRowDef="let a; columns: cols"></tr>
+    </table>
+    <div class="empty" *ngIf="!loading() && !rows().length">Không có tài sản</div>
+    <mat-paginator [length]="total()" [pageSize]="limit" [pageIndex]="page - 1" (page)="onPage($event)"></mat-paginator>
+  </div>
+</div>

@@ -1,0 +1,17 @@
+.stats {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px; margin-bottom: 16px;
+}
+.stat {
+  display: flex; align-items: center; gap: 14px; padding: 16px; background: #fff; border-radius: 10px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, .06); color: inherit; text-decoration: none;
+  transition: transform .15s;
+  &:hover { transform: translateY(-2px); }
+  mat-icon { font-size: 32px; width: 32px; height: 32px; }
+  .value { font-size: 26px; font-weight: 500; }
+}
+.blue { color: #3b82f6; } .orange { color: #f59e0b; } .red { color: #ef4444; }
+.green { color: #22c55e; } .purple { color: #8b5cf6; } .gray { color: #6b7280; }
+.charts {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(380px, 1fr)); gap: 16px; margin-bottom: 16px;
+}
+.chart-box { height: 280px; padding-top: 12px; }

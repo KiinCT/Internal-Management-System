@@ -1,0 +1,64 @@
+<h2 mat-dialog-title>
+  {{ data.task ? 'Sửa công việc' : data.parentTaskId ? 'Thêm việc con' : 'Tạo công việc' }}
+</h2>
+<mat-dialog-content>
+  <form [formGroup]="form" class="form-grid mt-16">
+    <mat-form-field appearance="outline" class="full">
+      <mat-label>Tiêu đề</mat-label>
+      <input matInput formControlName="title" maxlength="300" />
+    </mat-form-field>
+    <mat-form-field appearance="outline" class="full" *ngIf="!data.task && !data.projectId">
+      <mat-label>Dự án</mat-label>
+      <mat-select formControlName="projectId" (selectionChange)="onProject($event.value)">
+        <mat-option *ngFor="let p of projects()" [value]="p._id">{{ p.code }} - {{ p.name }}</mat-option>
+      </mat-select>
+    </mat-form-field>
+    <mat-form-field appearance="outline" class="full">
+      <mat-label>Mô tả</mat-label>
+      <textarea matInput rows="4" formControlName="description"></textarea>
+    </mat-form-field>
+    <mat-form-field appearance="outline">
+      <mat-label>Người thực hiện</mat-label>
+      <mat-select formControlName="assigneeId">
+        <mat-option [value]="null">— Chưa giao —</mat-option>
+        <mat-option *ngFor="let m of members()" [value]="m._id">{{ m.fullName }}</mat-option>
+      </mat-select>
+    </mat-form-field>
+    <mat-form-field appearance="outline">
+      <mat-label>Ưu tiên</mat-label>
+      <mat-select formControlName="priority">
+        <mat-option *ngFor="let p of priorities" [value]="p[0]">{{ p[1] }}</mat-option>
+      </mat-select>
+    </mat-form-field>
+    <mat-form-field appearance="outline">
+      <mat-label>Trạng thái</mat-label>
+      <mat-select formControlName="status">
+        <mat-option *ngFor="let s of statuses" [value]="s[0]">{{ s[1] }}</mat-option>
+      </mat-select>
+    </mat-form-field>
+    <mat-form-field appearance="outline">
+      <mat-label>Ước tính (giờ)</mat-label>
+      <input matInput type="number" min="0" formControlName="estimatedHours" />
+    </mat-form-field>
+    <mat-form-field appearance="outline">
+      <mat-label>Ngày bắt đầu</mat-label>
+      <input matInput [matDatepicker]="sd" formControlName="startDate" />
+      <mat-datepicker-toggle matIconSuffix [for]="sd"></mat-datepicker-toggle>
+      <mat-datepicker #sd></mat-datepicker>
+    </mat-form-field>
+    <mat-form-field appearance="outline">
+      <mat-label>Hạn chót</mat-label>
+      <input matInput [matDatepicker]="dd" formControlName="dueDate" />
+      <mat-datepicker-toggle matIconSuffix [for]="dd"></mat-datepicker-toggle>
+      <mat-datepicker #dd></mat-datepicker>
+    </mat-form-field>
+    <mat-form-field appearance="outline" class="full">
+      <mat-label>Nhãn (phân cách bằng dấu phẩy)</mat-label>
+      <input matInput formControlName="labels" />
+    </mat-form-field>
+  </form>
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+  <button mat-button mat-dialog-close>Hủy</button>
+  <button mat-flat-button color="primary" (click)="save()" [disabled]="form.invalid || saving()">Lưu</button>
+</mat-dialog-actions>

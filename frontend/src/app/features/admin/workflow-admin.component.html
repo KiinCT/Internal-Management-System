@@ -1,0 +1,101 @@
+<div class="page">
+  <div class="page-header">
+    <h1>Mẫu quy trình phê duyệt</h1>
+    <button mat-flat-button color="primary" (click)="newTemplate()"><mat-icon>add</mat-icon> Thêm mẫu</button>
+  </div>
+
+  <div class="layout">
+    <mat-card>
+      <mat-nav-list>
+        <a mat-list-item *ngFor="let t of templates()" (click)="edit(t)" [class.selected]="editingId() === t._id">
+          <span matListItemTitle>{{ t.name }}</span>
+          <span matListItemLine>
+            {{ t.type | label: typeLabels }} · {{ t.steps.length }} bước
+            <span *ngIf="!t.isActive" class="text-danger">· Ngừng dùng</span>
+          </span>
+        </a>
+      </mat-nav-list>
+    </mat-card>
+
+    <mat-card *ngIf="showEditor()">
+      <mat-card-content>
+        <form [formGroup]="form" (ngSubmit)="save()" class="mt-16">
+          <div class="form-grid">
+            <mat-form-field appearance="outline">
+              <mat-label>Tên mẫu</mat-label><input matInput formControlName="name" />
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label>Loại</mat-label>
+              <mat-select formControlName="type">
+                <mat-option *ngFor="let t of types" [value]="t[0]">{{ t[1] }}</mat-option>
+              </mat-select>
+            </mat-form-field>
+            <mat-form-field appearance="outline" class="full">
+              <mat-label>Mô tả</mat-label><input matInput formControlName="description" />
+            </mat-form-field>
+            <mat-slide-toggle formControlName="isActive" class="full mb-16">Đang sử dụng</mat-slide-toggle>
+          </div>
+
+          <h3>Trường thông tin</h3>
+          <div formArrayName="formFields">
+            <div class="line" *ngFor="let f of fields.controls; let i = index" [formGroupName]="i">
+              <mat-form-field appearance="outline"><mat-label>Key</mat-label><input matInput formControlName="key" /></mat-form-field>
+              <mat-form-field appearance="outline"><mat-label>Nhãn</mat-label><input matInput formControlName="label" /></mat-form-field>
+              <mat-form-field appearance="outline">
+                <mat-label>Kiểu</mat-label>
+                <mat-select formControlName="type">
+                  <mat-option *ngFor="let ft of fieldTypes" [value]="ft[0]">{{ ft[1] }}</mat-option>
+                </mat-select>
+              </mat-form-field>
+              <mat-form-field appearance="outline" *ngIf="f.value.type === 'select'">
+                <mat-label>Lựa chọn (phân cách ,)</mat-label><input matInput formControlName="options" />
+              </mat-form-field>
+              <mat-checkbox formControlName="required">Bắt buộc</mat-checkbox>
+              <button mat-icon-button type="button" (click)="fields.removeAt(i)"><mat-icon>delete_outline</mat-icon></button>
+            </div>
+          </div>
+          <button mat-stroked-button type="button" (click)="addField()" class="mb-16"><mat-icon>add</mat-icon> Thêm trường</button>
+          <p class="muted">Gợi ý: đặt key <code>amount</code> cho trường số tiền để dùng điều kiện "số tiền tối thiểu" ở bước duyệt.</p>
+
+          <h3>Các bước duyệt</h3>
+          <div formArrayName="steps">
+            <div class="line" *ngFor="let s of steps.controls; let i = index" [formGroupName]="i">
+              <strong class="step-no">{{ i + 1 }}</strong>
+              <mat-form-field appearance="outline"><mat-label>Tên bước</mat-label><input matInput formControlName="name" /></mat-form-field>
+              <mat-form-field appearance="outline">
+                <mat-label>Người duyệt</mat-label>
+                <mat-select formControlName="approverType">
+                  <mat-option *ngFor="let a of approverTypes" [value]="a[0]">{{ a[1] }}</mat-option>
+                </mat-select>
+              </mat-form-field>
+              <mat-form-field appearance="outline" *ngIf="s.value.approverType === 'role'">
+                <mat-label>Vai trò</mat-label>
+                <mat-select formControlName="approverRole">
+                  <mat-option *ngFor="let r of roles" [value]="r[0]">{{ r[1] }}</mat-option>
+                </mat-select>
+              </mat-form-field>
+              <mat-form-field appearance="outline" *ngIf="s.value.approverType === 'user'">
+                <mat-label>Chọn người</mat-label>
+                <mat-select formControlName="approverId">
+                  <mat-option *ngFor="let u of users()" [value]="u._id">{{ u.fullName }}</mat-option>
+                </mat-select>
+              </mat-form-field>
+              <mat-form-field appearance="outline">
+                <mat-label>Số tiền tối thiểu</mat-label><input matInput type="number" min="0" formControlName="minAmount" />
+              </mat-form-field>
+              <button mat-icon-button type="button" (click)="steps.removeAt(i)" [disabled]="steps.length <= 1">
+                <mat-icon>delete_outline</mat-icon>
+              </button>
+            </div>
+          </div>
+          <button mat-stroked-button type="button" (click)="addStep()" class="mb-16"><mat-icon>add</mat-icon> Thêm bước</button>
+
+          <div class="flex gap-8 mt-16">
+            <button mat-flat-button color="primary" [disabled]="form.invalid || saving()">Lưu mẫu</button>
+            <button mat-button type="button" (click)="showEditor.set(false)">Đóng</button>
+          </div>
+        </form>
+      </mat-card-content>
+    </mat-card>
+  </div>
+</div>

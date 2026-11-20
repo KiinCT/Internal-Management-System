@@ -1,0 +1,64 @@
+<div class="page">
+  <div class="page-header"><h1>Phòng ban</h1></div>
+  <div class="layout">
+    <mat-card>
+      <mat-card-content>
+        <div
+          class="row"
+          *ngFor="let r of rows()"
+          [style.padding-left.px]="r.level * 24 + 8"
+          [class.selected]="editing()?._id === r.dept._id"
+        >
+          <mat-icon>{{ r.level ? 'subdirectory_arrow_right' : 'apartment' }}</mat-icon>
+          <div class="flex-1">
+            <strong>{{ r.dept.name }}</strong> <span class="muted">({{ r.dept.code }})</span>
+            <div class="muted">Trưởng phòng: {{ r.dept.headId | refName: '—' }}</div>
+          </div>
+          <button mat-icon-button (click)="edit(r.dept)"><mat-icon>edit</mat-icon></button>
+          <button mat-icon-button (click)="remove(r.dept)"><mat-icon>delete_outline</mat-icon></button>
+        </div>
+        <div class="empty" *ngIf="!rows().length">Chưa có phòng ban</div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card>
+      <mat-card-header>
+        <mat-card-title>{{ editing() ? 'Sửa phòng ban' : 'Thêm phòng ban' }}</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <form [formGroup]="form" (ngSubmit)="save()" class="mt-16">
+          <mat-form-field appearance="outline" class="w-100">
+            <mat-label>Tên</mat-label><input matInput formControlName="name" />
+          </mat-form-field>
+          <mat-form-field appearance="outline" class="w-100">
+            <mat-label>Mã</mat-label><input matInput formControlName="code" />
+          </mat-form-field>
+          <mat-form-field appearance="outline" class="w-100">
+            <mat-label>Trực thuộc</mat-label>
+            <mat-select formControlName="parentId">
+              <mat-option [value]="null">— Cấp cao nhất —</mat-option>
+              <ng-container *ngFor="let r of rows()">
+                <mat-option *ngIf="r.dept._id !== editing()?._id" [value]="r.dept._id">{{ r.dept.name }}</mat-option>
+              </ng-container>
+            </mat-select>
+          </mat-form-field>
+          <mat-form-field appearance="outline" class="w-100">
+            <mat-label>Trưởng phòng</mat-label>
+            <mat-select formControlName="headId">
+              <mat-option [value]="null">—</mat-option>
+              <mat-option *ngFor="let u of users()" [value]="u._id">{{ u.fullName }}</mat-option>
+            </mat-select>
+          </mat-form-field>
+          <mat-form-field appearance="outline" class="w-100">
+            <mat-label>Mô tả</mat-label>
+            <textarea matInput rows="2" formControlName="description"></textarea>
+          </mat-form-field>
+          <div class="flex gap-8">
+            <button mat-flat-button color="primary" [disabled]="form.invalid">Lưu</button>
+            <button mat-button type="button" *ngIf="editing()" (click)="reset()">Hủy sửa</button>
+          </div>
+        </form>
+      </mat-card-content>
+    </mat-card>
+  </div>
+</div>

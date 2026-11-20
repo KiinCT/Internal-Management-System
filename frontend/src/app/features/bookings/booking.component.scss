@@ -1,0 +1,16 @@
+.toolbar { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.res-filter { width: 220px; .mat-mdc-form-field-subscript-wrapper { display: none; } }
+.week { display: grid; grid-template-columns: repeat(7, minmax(150px, 1fr)); gap: 8px; overflow-x: auto; }
+.day {
+  background: #fff; border-radius: 8px; padding: 8px; min-height: 220px;
+  &.today { outline: 2px solid #3b82f6; }
+}
+.day-head { font-weight: 500; text-transform: capitalize; margin-bottom: 8px; color: #374151; }
+.booking {
+  position: relative; background: #eff6ff; border-left: 3px solid #3b82f6;
+  border-radius: 6px; padding: 6px 8px; margin-bottom: 6px; font-size: 13px;
+  .time { font-weight: 500; color: #1d4ed8; }
+  .title { font-weight: 500; padding-right: 24px; }
+  .del { position: absolute; top: -4px; right: -4px; transform: scale(.8); }
+}
+.empty.small { padding: 12px; font-size: 12px; }

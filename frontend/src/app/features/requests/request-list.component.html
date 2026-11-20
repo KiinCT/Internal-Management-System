@@ -1,0 +1,73 @@
+<div class="page">
+  <div class="page-header">
+    <h1>Đề xuất & phê duyệt</h1>
+    <a mat-flat-button color="primary" routerLink="/requests/new"><mat-icon>add</mat-icon> Tạo đề xuất</a>
+  </div>
+
+  <mat-tab-group [selectedIndex]="tabIndex()" (selectedTabChange)="onTab($event)" class="mb-16">
+    <mat-tab label="Đơn của tôi"></mat-tab>
+    <mat-tab>
+      <ng-template mat-tab-label>
+        Chờ tôi duyệt
+        <span class="count" *ngIf="pendingCount()">{{ pendingCount() }}</span>
+      </ng-template>
+    </mat-tab>
+    <mat-tab label="Tất cả liên quan"></mat-tab>
+  </mat-tab-group>
+
+  <div class="filters mb-16">
+    <mat-form-field appearance="outline" *ngIf="scope !== 'pending'">
+      <mat-label>Trạng thái</mat-label>
+      <mat-select [(ngModel)]="status" (selectionChange)="page = 1; load()">
+        <mat-option value="">Tất cả</mat-option>
+        <mat-option *ngFor="let s of statuses" [value]="s[0]">{{ s[1] }}</mat-option>
+      </mat-select>
+    </mat-form-field>
+    <mat-form-field appearance="outline">
+      <mat-label>Loại đơn</mat-label>
+      <mat-select [(ngModel)]="type" (selectionChange)="page = 1; load()">
+        <mat-option value="">Tất cả</mat-option>
+        <mat-option *ngFor="let t of types" [value]="t[0]">{{ t[1] }}</mat-option>
+      </mat-select>
+    </mat-form-field>
+  </div>
+
+  <mat-progress-bar mode="indeterminate" *ngIf="loading()"></mat-progress-bar>
+  <div class="table-wrap">
+    <table mat-table [dataSource]="rows()">
+      <ng-container matColumnDef="code">
+        <th mat-header-cell *matHeaderCellDef>Mã đơn</th>
+        <td mat-cell *matCellDef="let r"><strong>{{ r.code }}</strong></td>
+      </ng-container>
+      <ng-container matColumnDef="title">
+        <th mat-header-cell *matHeaderCellDef>Tiêu đề</th>
+        <td mat-cell *matCellDef="let r">
+          <div>{{ r.title }}</div>
+          <div class="muted">{{ r.templateName }}</div>
+        </td>
+      </ng-container>
+      <ng-container matColumnDef="requester">
+        <th mat-header-cell *matHeaderCellDef>Người tạo</th>
+        <td mat-cell *matCellDef="let r">{{ r.requesterId | refName }}</td>
+      </ng-container>
+      <ng-container matColumnDef="step">
+        <th mat-header-cell *matHeaderCellDef>Bước hiện tại</th>
+        <td mat-cell *matCellDef="let r">{{ r.currentStep >= 0 ? r.steps[r.currentStep]?.name : '—' }}</td>
+      </ng-container>
+      <ng-container matColumnDef="createdAt">
+        <th mat-header-cell *matHeaderCellDef>Ngày tạo</th>
+        <td mat-cell *matCellDef="let r">{{ r.createdAt | date: 'dd/MM/yyyy HH:mm' }}</td>
+      </ng-container>
+      <ng-container matColumnDef="status">
+        <th mat-header-cell *matHeaderCellDef>Trạng thái</th>
+        <td mat-cell *matCellDef="let r">
+          <span class="badge {{ r.status }}">{{ r.status | label: statusLabels }}</span>
+        </td>
+      </ng-container>
+      <tr mat-header-row *matHeaderRowDef="cols"></tr>
+      <tr mat-row *matRowDef="let r; columns: cols" class="clickable" [routerLink]="['/requests', r._id]"></tr>
+    </table>
+    <div class="empty" *ngIf="!loading() && !rows().length">Không có đơn nào</div>
+    <mat-paginator [length]="total()" [pageSize]="limit" [pageIndex]="page - 1" (page)="onPage($event)"></mat-paginator>
+  </div>
+</div>

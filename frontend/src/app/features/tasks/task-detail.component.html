@@ -1,0 +1,159 @@
+<div class="page" *ngIf="task() as t; else loadingTpl">
+  <div class="page-header">
+    <div>
+      <a mat-button [routerLink]="['/projects', projectId()]">
+        <mat-icon>arrow_back</mat-icon> {{ t.projectId | refName }}
+      </a>
+      <h1>{{ t.title }}</h1>
+      <div class="muted" *ngIf="t.parentTaskId">
+        Việc con của: <a [routerLink]="['/tasks', parentId()]">{{ t.parentTaskId | refName }}</a>
+      </div>
+    </div>
+    <div class="flex gap-8">
+      <button mat-stroked-button (click)="edit()"><mat-icon>edit</mat-icon> Sửa</button>
+      <button mat-stroked-button color="warn" (click)="remove()"><mat-icon>delete</mat-icon> Xóa</button>
+    </div>
+  </div>
+
+  <div class="layout">
+    <div class="main">
+      <mat-card class="mb-16">
+        <mat-card-content>
+          <h3>Mô tả</h3>
+          <p class="desc">{{ t.description || 'Chưa có mô tả' }}</p>
+          <mat-chip-set *ngIf="t.labels.length">
+            <mat-chip *ngFor="let l of t.labels">{{ l }}</mat-chip>
+          </mat-chip-set>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="mb-16">
+        <mat-card-content>
+          <h3>Checklist ({{ checklistDone() }}/{{ t.checklist.length }})</h3>
+          <mat-progress-bar
+            *ngIf="t.checklist.length"
+            mode="determinate"
+            [value]="(checklistDone() / t.checklist.length) * 100"
+          ></mat-progress-bar>
+          <div class="check-item" *ngFor="let c of t.checklist; let i = index">
+            <mat-checkbox [checked]="c.done" (change)="toggleCheck(i)">{{ c.text }}</mat-checkbox>
+            <button mat-icon-button (click)="removeCheck(i)"><mat-icon>close</mat-icon></button>
+          </div>
+          <div class="flex gap-8 items-center mt-16">
+            <mat-form-field appearance="outline" class="flex-1 compact">
+              <input matInput placeholder="Thêm mục..." [(ngModel)]="newCheck" (keyup.enter)="addCheck()" />
+            </mat-form-field>
+            <button mat-stroked-button (click)="addCheck()" [disabled]="!newCheck.trim()">Thêm</button>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="mb-16" *ngIf="!t.parentTaskId">
+        <mat-card-content>
+          <div class="flex items-center justify-between">
+            <h3>Việc con ({{ t.subtasks?.length || 0 }})</h3>
+            <button mat-button color="primary" (click)="addSubtask()"><mat-icon>add</mat-icon> Thêm</button>
+          </div>
+          <mat-list>
+            <a mat-list-item *ngFor="let s of t.subtasks" [routerLink]="['/tasks', s._id]">
+              <span matListItemTitle>{{ s.title }}</span>
+              <span matListItemLine>
+                <span class="badge {{ s.status }}">{{ s.status | label: statusLabels }}</span>
+                &nbsp;{{ s.assigneeId | refName }}
+              </span>
+            </a>
+          </mat-list>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="mb-16">
+        <mat-card-content>
+          <div class="flex items-center justify-between">
+            <h3>Tệp đính kèm ({{ attachments().length }})</h3>
+            <button mat-button color="primary" (click)="fileInput.click()" [disabled]="uploading()">
+              <mat-icon>upload</mat-icon> Tải lên
+            </button>
+            <input #fileInput type="file" hidden (change)="upload($event)" />
+          </div>
+          <mat-progress-bar mode="indeterminate" *ngIf="uploading()"></mat-progress-bar>
+          <div class="file" *ngFor="let a of attachments()">
+            <mat-icon>description</mat-icon>
+            <a href="javascript:void(0)" (click)="download(a)">{{ a.fileName }}</a>
+            <span class="muted">
+              {{ a.size | fileSize }} · {{ a.uploadedBy | refName }} · {{ a.createdAt | date: 'dd/MM HH:mm' }}
+            </span>
+            <span class="flex-1"></span>
+            <button mat-icon-button (click)="removeAttachment(a)"><mat-icon>delete_outline</mat-icon></button>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card>
+        <mat-card-content>
+          <h3>Bình luận ({{ comments().length }})</h3>
+          <div class="comment" *ngFor="let c of comments()">
+            <div class="comment-head">
+              <strong>{{ c.authorId.fullName }}</strong>
+              <span class="muted">{{ c.createdAt | date: 'dd/MM/yyyy HH:mm' }}</span>
+              <span class="flex-1"></span>
+              <button mat-icon-button *ngIf="c.authorId._id === me" (click)="removeComment(c)">
+                <mat-icon>delete_outline</mat-icon>
+              </button>
+            </div>
+            <div class="comment-body">{{ c.content }}</div>
+          </div>
+          <mat-form-field appearance="outline" class="w-100 mt-16">
+            <mat-label>Viết bình luận</mat-label>
+            <textarea matInput rows="3" [(ngModel)]="newComment"></textarea>
+          </mat-form-field>
+          <div class="flex gap-8 items-center">
+            <mat-form-field appearance="outline" class="flex-1 compact">
+              <mat-label>Nhắc đến (&#64;)</mat-label>
+              <mat-select multiple [(ngModel)]="mentions">
+                <mat-option *ngFor="let u of users()" [value]="u._id">{{ u.fullName }}</mat-option>
+              </mat-select>
+            </mat-form-field>
+            <button mat-flat-button color="primary" (click)="addComment()" [disabled]="!newComment.trim()">
+              Gửi
+            </button>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+
+    <div class="side">
+      <mat-card>
+        <mat-card-content class="props">
+          <div class="prop">
+            <span class="muted">Trạng thái</span>
+            <mat-select [value]="t.status" (selectionChange)="changeStatus($event.value)">
+              <mat-option *ngFor="let s of statuses" [value]="s[0]">{{ s[1] }}</mat-option>
+            </mat-select>
+          </div>
+          <div class="prop">
+            <span class="muted">Ưu tiên</span>
+            <span><span class="badge {{ t.priority }}">{{ t.priority | label: priorityLabels }}</span></span>
+          </div>
+          <div class="prop"><span class="muted">Người thực hiện</span>{{ t.assigneeId | refName: 'Chưa giao' }}</div>
+          <div class="prop"><span class="muted">Người giao</span>{{ t.reporterId | refName }}</div>
+          <div class="prop"><span class="muted">Bắt đầu</span>{{ (t.startDate | date: 'dd/MM/yyyy') || '—' }}</div>
+          <div class="prop">
+            <span class="muted">Hạn chót</span>
+            <span [class.text-danger]="t.dueDate | overdue: t.status">{{ (t.dueDate | date: 'dd/MM/yyyy') || '—' }}</span>
+          </div>
+          <div class="prop" *ngIf="t.completedAt">
+            <span class="muted">Hoàn thành</span>{{ t.completedAt | date: 'dd/MM/yyyy HH:mm' }}
+          </div>
+          <div class="prop"><span class="muted">Thời gian</span>{{ t.loggedHours }} / {{ t.estimatedHours ?? '?' }} giờ</div>
+          <div class="flex gap-8 items-center">
+            <mat-form-field appearance="outline" class="flex-1 compact">
+              <input matInput type="number" min="0.1" step="0.5" placeholder="Số giờ" [(ngModel)]="hours" />
+            </mat-form-field>
+            <button mat-stroked-button (click)="logTime()" [disabled]="!hours || hours <= 0">Ghi giờ</button>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+  </div>
+</div>
+<ng-template #loadingTpl><mat-progress-bar mode="indeterminate"></mat-progress-bar></ng-template>

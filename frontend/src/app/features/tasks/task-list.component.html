@@ -1,0 +1,82 @@
+<div class="page">
+  <div class="page-header">
+    <h1>{{ mine ? 'Việc của tôi' : 'Công việc' }}</h1>
+    <button mat-flat-button color="primary" (click)="create()">
+      <mat-icon>add</mat-icon> Tạo công việc
+    </button>
+  </div>
+
+  <div class="filters mb-16">
+    <mat-form-field appearance="outline">
+      <mat-label>Tìm kiếm</mat-label>
+      <input matInput [value]="filter.q" (input)="search$.next($any($event.target).value)" />
+      <mat-icon matSuffix>search</mat-icon>
+    </mat-form-field>
+    <mat-form-field appearance="outline" *ngIf="!mine">
+      <mat-label>Dự án</mat-label>
+      <mat-select [(ngModel)]="filter.projectId" (selectionChange)="apply()">
+        <mat-option value="">Tất cả</mat-option>
+        <mat-option *ngFor="let p of projects()" [value]="p._id">{{ p.code }} - {{ p.name }}</mat-option>
+      </mat-select>
+    </mat-form-field>
+    <mat-form-field appearance="outline">
+      <mat-label>Trạng thái</mat-label>
+      <mat-select [(ngModel)]="filter.status" (selectionChange)="apply()" multiple>
+        <mat-option *ngFor="let s of statuses" [value]="s[0]">{{ s[1] }}</mat-option>
+      </mat-select>
+    </mat-form-field>
+    <mat-form-field appearance="outline">
+      <mat-label>Ưu tiên</mat-label>
+      <mat-select [(ngModel)]="filter.priority" (selectionChange)="apply()">
+        <mat-option value="">Tất cả</mat-option>
+        <mat-option *ngFor="let p of priorities" [value]="p[0]">{{ p[1] }}</mat-option>
+      </mat-select>
+    </mat-form-field>
+    <mat-slide-toggle [(ngModel)]="filter.overdue" (change)="apply()">Chỉ việc quá hạn</mat-slide-toggle>
+  </div>
+
+  <mat-progress-bar mode="indeterminate" *ngIf="loading()"></mat-progress-bar>
+  <div class="table-wrap">
+    <table mat-table [dataSource]="rows()" matSort (matSortChange)="onSort($event)">
+      <ng-container matColumnDef="title">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>Công việc</th>
+        <td mat-cell *matCellDef="let t">
+          <div><strong>{{ t.title }}</strong></div>
+          <div class="muted">{{ t.projectId | refName }}</div>
+        </td>
+      </ng-container>
+      <ng-container matColumnDef="assignee">
+        <th mat-header-cell *matHeaderCellDef>Người thực hiện</th>
+        <td mat-cell *matCellDef="let t">{{ t.assigneeId | refName: '—' }}</td>
+      </ng-container>
+      <ng-container matColumnDef="priority">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>Ưu tiên</th>
+        <td mat-cell *matCellDef="let t"><span class="badge {{ t.priority }}">{{ t.priority | label: priorityLabels }}</span></td>
+      </ng-container>
+      <ng-container matColumnDef="status">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>Trạng thái</th>
+        <td mat-cell *matCellDef="let t" (click)="$event.stopPropagation()">
+          <mat-select class="status-select" [value]="t.status" (selectionChange)="changeStatus(t, $event.value)">
+            <mat-option *ngFor="let s of statuses" [value]="s[0]">{{ s[1] }}</mat-option>
+          </mat-select>
+        </td>
+      </ng-container>
+      <ng-container matColumnDef="dueDate">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>Hạn chót</th>
+        <td mat-cell *matCellDef="let t" [class.text-danger]="t.dueDate | overdue: t.status">
+          {{ t.dueDate | date: 'dd/MM/yyyy' }}
+        </td>
+      </ng-container>
+      <tr mat-header-row *matHeaderRowDef="cols"></tr>
+      <tr mat-row *matRowDef="let t; columns: cols" class="clickable" [routerLink]="['/tasks', t._id]"></tr>
+    </table>
+    <div class="empty" *ngIf="!loading() && !rows().length">Không có công việc phù hợp</div>
+    <mat-paginator
+      [length]="total()"
+      [pageSize]="filter.limit"
+      [pageIndex]="filter.page - 1"
+      [pageSizeOptions]="[10, 20, 50, 100]"
+      (page)="onPage($event)"
+    ></mat-paginator>
+  </div>
+</div>

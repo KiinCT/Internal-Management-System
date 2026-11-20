@@ -1,0 +1,67 @@
+<ng-container *ngIf="data.mode === 'assign'; else editTpl">
+  <h2 mat-dialog-title>Cấp phát {{ data.asset?.code }}</h2>
+  <mat-dialog-content>
+    <mat-form-field appearance="outline" class="w-100 mt-16">
+      <mat-label>Người nhận</mat-label>
+      <mat-select [(ngModel)]="userId">
+        <mat-option *ngFor="let u of users()" [value]="u._id">{{ u.fullName }} ({{ u.email }})</mat-option>
+      </mat-select>
+    </mat-form-field>
+    <mat-form-field appearance="outline" class="w-100">
+      <mat-label>Ghi chú</mat-label>
+      <input matInput [(ngModel)]="note" />
+    </mat-form-field>
+  </mat-dialog-content>
+  <mat-dialog-actions align="end">
+    <button mat-button mat-dialog-close>Hủy</button>
+    <button mat-flat-button color="primary" [disabled]="!userId || saving()" (click)="assign()">Cấp phát</button>
+  </mat-dialog-actions>
+</ng-container>
+
+<ng-template #editTpl>
+  <h2 mat-dialog-title>{{ data.asset ? 'Sửa tài sản' : 'Thêm tài sản' }}</h2>
+  <mat-dialog-content>
+    <form [formGroup]="form" class="form-grid mt-16">
+      <mat-form-field appearance="outline">
+        <mat-label>Mã tài sản</mat-label>
+        <input matInput formControlName="code" />
+      </mat-form-field>
+      <mat-form-field appearance="outline">
+        <mat-label>Loại</mat-label>
+        <input matInput formControlName="category" placeholder="Laptop, Màn hình..." />
+      </mat-form-field>
+      <mat-form-field appearance="outline" class="full">
+        <mat-label>Tên tài sản</mat-label>
+        <input matInput formControlName="name" />
+      </mat-form-field>
+      <mat-form-field appearance="outline">
+        <mat-label>Số serial</mat-label>
+        <input matInput formControlName="serialNumber" />
+      </mat-form-field>
+      <mat-form-field appearance="outline">
+        <mat-label>Giá trị (VNĐ)</mat-label>
+        <input matInput type="number" min="0" formControlName="price" />
+      </mat-form-field>
+      <mat-form-field appearance="outline">
+        <mat-label>Ngày mua</mat-label>
+        <input matInput [matDatepicker]="pd" formControlName="purchaseDate" />
+        <mat-datepicker-toggle matIconSuffix [for]="pd"></mat-datepicker-toggle>
+        <mat-datepicker #pd></mat-datepicker>
+      </mat-form-field>
+      <mat-form-field appearance="outline" *ngIf="data.asset && data.asset.status !== 'in_use'">
+        <mat-label>Trạng thái</mat-label>
+        <mat-select formControlName="status">
+          <mat-option *ngFor="let s of editableStatuses" [value]="s[0]">{{ s[1] }}</mat-option>
+        </mat-select>
+      </mat-form-field>
+      <mat-form-field appearance="outline" class="full">
+        <mat-label>Ghi chú</mat-label>
+        <textarea matInput rows="2" formControlName="note"></textarea>
+      </mat-form-field>
+    </form>
+  </mat-dialog-content>
+  <mat-dialog-actions align="end">
+    <button mat-button mat-dialog-close>Hủy</button>
+    <button mat-flat-button color="primary" [disabled]="form.invalid || saving()" (click)="save()">Lưu</button>
+  </mat-dialog-actions>
+</ng-template>

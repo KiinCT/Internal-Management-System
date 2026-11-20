@@ -1,0 +1,86 @@
+<div class="page">
+  <div class="page-header">
+    <h1>Đặt phòng họp / tài nguyên</h1>
+    <button mat-flat-button color="primary" (click)="showForm = !showForm">
+      <mat-icon>{{ showForm ? 'close' : 'add' }}</mat-icon> {{ showForm ? 'Đóng' : 'Đặt lịch' }}
+    </button>
+  </div>
+
+  <mat-card class="mb-16" *ngIf="showForm">
+    <mat-card-content>
+      <form [formGroup]="form" (ngSubmit)="book()" class="form-grid mt-16">
+        <mat-form-field appearance="outline">
+          <mat-label>Phòng / tài nguyên</mat-label>
+          <mat-select formControlName="resourceId">
+            <mat-option *ngFor="let r of resources()" [value]="r._id">
+              {{ r.name }}<span *ngIf="r.capacity"> · {{ r.capacity }} chỗ</span>
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>Tiêu đề</mat-label>
+          <input matInput formControlName="title" />
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>Ngày</mat-label>
+          <input matInput [matDatepicker]="bd" formControlName="date" [min]="today" />
+          <mat-datepicker-toggle matIconSuffix [for]="bd"></mat-datepicker-toggle>
+          <mat-datepicker #bd></mat-datepicker>
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>Từ (giờ)</mat-label>
+          <input matInput type="time" formControlName="from" />
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>Đến (giờ)</mat-label>
+          <input matInput type="time" formControlName="to" />
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>Người tham dự</mat-label>
+          <mat-select formControlName="attendeeIds" multiple>
+            <mat-option *ngFor="let u of users()" [value]="u._id">{{ u.fullName }}</mat-option>
+          </mat-select>
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="full">
+          <mat-label>Ghi chú</mat-label>
+          <input matInput formControlName="note" />
+        </mat-form-field>
+        <div class="full">
+          <button mat-flat-button color="primary" [disabled]="form.invalid || saving()">Xác nhận đặt</button>
+        </div>
+      </form>
+    </mat-card-content>
+  </mat-card>
+
+  <div class="toolbar mb-16">
+    <button mat-icon-button (click)="shiftWeek(-1)"><mat-icon>chevron_left</mat-icon></button>
+    <button mat-stroked-button (click)="goToday()">Tuần này</button>
+    <button mat-icon-button (click)="shiftWeek(1)"><mat-icon>chevron_right</mat-icon></button>
+    <strong>{{ weekStart() | date: 'dd/MM' }} – {{ weekEnd() | date: 'dd/MM/yyyy' }}</strong>
+    <span class="flex-1"></span>
+    <mat-form-field appearance="outline" class="res-filter">
+      <mat-label>Lọc theo phòng</mat-label>
+      <mat-select [(ngModel)]="resourceFilter" (selectionChange)="load()">
+        <mat-option value="">Tất cả</mat-option>
+        <mat-option *ngFor="let r of resources()" [value]="r._id">{{ r.name }}</mat-option>
+      </mat-select>
+    </mat-form-field>
+  </div>
+
+  <mat-progress-bar mode="indeterminate" *ngIf="loading()"></mat-progress-bar>
+  <div class="week">
+    <div class="day" *ngFor="let d of days()" [class.today]="isToday(d.date)">
+      <div class="day-head">{{ d.date | date: 'EEE dd/MM' }}</div>
+      <div class="booking" *ngFor="let b of d.items">
+        <div class="time">{{ b.start | date: 'HH:mm' }} – {{ b.end | date: 'HH:mm' }}</div>
+        <div class="title">{{ b.title }}</div>
+        <div class="muted">{{ b.resourceId | refName }}</div>
+        <div class="muted">{{ b.bookedBy | refName }}</div>
+        <button mat-icon-button class="del" *ngIf="canDelete(b)" (click)="remove(b)" matTooltip="Hủy lịch">
+          <mat-icon>delete_outline</mat-icon>
+        </button>
+      </div>
+      <div class="empty small" *ngIf="!d.items.length">Trống</div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,45 @@
+<mat-progress-bar mode="indeterminate" *ngIf="loading()"></mat-progress-bar>
+<div class="board" cdkDropListGroup>
+  <div class="column" *ngFor="let col of columns">
+    <div class="col-head">
+      <span class="badge {{ col }}">{{ col | label: statusLabels }}</span>
+      <span class="muted">{{ board()[col].length }}</span>
+      <span class="flex-1"></span>
+      <button mat-icon-button (click)="create(col)" matTooltip="Thêm công việc">
+        <mat-icon>add</mat-icon>
+      </button>
+    </div>
+    <div
+      class="list"
+      cdkDropList
+      [id]="col"
+      [cdkDropListData]="board()[col]"
+      (cdkDropListDropped)="drop($event)"
+    >
+      <div
+        class="card"
+        *ngFor="let t of board()[col]"
+        cdkDrag
+        [cdkDragData]="t"
+        (click)="openTask(t)"
+      >
+        <div class="card-title">{{ t.title }}</div>
+        <div class="labels" *ngIf="t.labels?.length">
+          <span class="chip" *ngFor="let l of t.labels">{{ l }}</span>
+        </div>
+        <div class="meta">
+          <span class="badge {{ t.priority }}">{{ t.priority | label: priorityLabels }}</span>
+          <span class="due" *ngIf="t.dueDate" [class.text-danger]="t.dueDate | overdue: t.status">
+            <mat-icon>schedule</mat-icon>{{ t.dueDate | date: 'dd/MM' }}
+          </span>
+          <span class="flex-1"></span>
+          <span class="avatar" *ngIf="t.assigneeId" [matTooltip]="t.assigneeId | refName">
+            {{ initials(t.assigneeId | refName) }}
+          </span>
+        </div>
+        <div class="placeholder" *cdkDragPlaceholder></div>
+      </div>
+      <div class="empty small" *ngIf="!board()[col].length">Kéo thả công việc vào đây</div>
+    </div>
+  </div>
+</div>

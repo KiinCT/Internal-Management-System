@@ -1,0 +1,22 @@
+.narrow { max-width: 900px; }
+h1 { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin: 4px 0; }
+.data { display: grid; grid-template-columns: 200px 1fr; gap: 10px; margin-top: 16px; }
+dt { color: #6b7280; }
+dd { margin: 0; white-space: pre-wrap; }
+.timeline { margin-top: 16px; }
+.step {
+  display: flex; gap: 14px; padding-bottom: 18px; position: relative;
+  &:not(:last-child)::before {
+    content: ''; position: absolute; left: 15px; top: 34px; bottom: 0; width: 2px; background: #e5e7eb;
+  }
+}
+.dot {
+  width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center;
+  background: #e5e7eb; color: #6b7280; flex-shrink: 0;
+  mat-icon { font-size: 18px; width: 18px; height: 18px; }
+  &.approved { background: #22c55e; color: #fff; }
+  &.rejected { background: #ef4444; color: #fff; }
+  &.pending { background: #3b82f6; color: #fff; }
+}
+.current .body { background: #eff6ff; border-radius: 8px; padding: 6px 10px; margin: -6px -10px; }
+.comment { margin-top: 4px; font-style: italic; }
