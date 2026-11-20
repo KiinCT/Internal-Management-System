@@ -82,7 +82,13 @@ export class QueryTaskDto extends PaginationQueryDto {
 
   @ApiPropertyOptional({ description: 'Có thể truyền nhiều, phân cách bởi dấu phẩy' })
   @IsOptional()
-  @Transform(({ value }) => (typeof value === 'string' ? value.split(',') : value))
+  @Transform(({ value }) => {
+    // Chấp nhận "a,b", ["a","b"]; bỏ phần tử rỗng; rỗng hoàn toàn thì coi như không lọc
+    const list = (Array.isArray(value) ? value : String(value ?? '').split(','))
+      .map((s: string) => String(s).trim())
+      .filter(Boolean);
+    return list.length ? list : undefined;
+  })
   @IsEnum(TaskStatus, { each: true })
   status?: TaskStatus[];
 

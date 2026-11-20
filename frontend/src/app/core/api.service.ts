@@ -40,7 +40,12 @@ export class ApiService {
     if (!params) return p;
     for (const [k, v] of Object.entries(params)) {
       if (v === null || v === undefined || v === '') continue;
-      p = p.set(k, Array.isArray(v) ? v.join(',') : String(v));
+      if (Array.isArray(v)) {
+        // Mảng rỗng không được gửi, tránh tạo ra "status=" làm backend báo lỗi
+        if (v.length) p = p.set(k, v.join(','));
+        continue;
+      }
+      p = p.set(k, String(v));
     }
     return p;
   }
